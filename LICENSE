@@ -1,0 +1,12 @@
+Apache License 2.0 — proposed project license
+
+Copyright 2026 The Knowledge Engineering Platform contributors
+
+The maintainers intend to release this project under the Apache License,
+Version 2.0. The complete authoritative license text is available at:
+https://www.apache.org/licenses/LICENSE-2.0
+
+Until ADR-008 is accepted by the copyright holders, this repository contains
+architecture documentation only and this file is a licensing proposal rather
+than a final grant. On acceptance, replace this notice with the verbatim
+Apache License 2.0 text and retain the copyright notice above.
