@@ -1,0 +1,87 @@
+name: Documentação
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-docs:
+    name: Links relativos e Mermaid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-docs-${{ hashFiles('docs/**/*.md') }}
+          restore-keys: ${{ runner.os }}-npm-docs-
+      - name: Validar links relativos em Markdown
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const docs = 'docs';
+          const files = [];
+          const visit = (dir) => {
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const item = path.join(dir, entry.name);
+              if (entry.isDirectory()) visit(item);
+              else if (entry.isFile() && item.endsWith('.md')) files.push(item);
+            }
+          };
+          visit(docs);
+          const invalid = [];
+          for (const file of files) {
+            const body = fs.readFileSync(file, 'utf8');
+            const links = body.matchAll(/(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+[^)]*)?\)/g);
+            for (const link of links) {
+              const target = link[1].replace(/^<|>$/g, '');
+              if (/^(?:https?:|mailto:|#|\/)/i.test(target)) continue;
+              const resolved = path.resolve(path.dirname(file), target.split('#')[0]);
+              if (!fs.existsSync(resolved)) invalid.push(`${file}: ${target}`);
+            }
+          }
+          if (invalid.length) {
+            console.error(`Links relativos quebrados:\n${invalid.join('\n')}`);
+            process.exit(1);
+          }
+          console.log(`${files.length} arquivos Markdown verificados; nenhum link relativo quebrado.`);
+          NODE
+      - name: Validar sintaxe dos blocos Mermaid
+        run: |
+          set -euo pipefail
+          temp_dir="$(mktemp -d)"
+          trap 'rm -rf "$temp_dir"' EXIT
+          printf '%s\n' '{"args":["--no-sandbox"]}' > "$temp_dir/puppeteer-config.json"
+          index=0
+          while IFS= read -r -d '' file; do
+            awk -v dir="$temp_dir" -v prefix="$index" '
+              /^```mermaid[[:space:]]*$/ { inside=1; block++; next }
+              inside && /^```[[:space:]]*$/ { inside=0; next }
+              inside { print > (dir "/" prefix "-" block ".mmd") }
+            ' "$file"
+            index=$((index + 1))
+          done < <(find docs -type f -name '*.md' -print0)
+          shopt -s nullglob
+          diagrams=("$temp_dir"/*.mmd)
+          if [ "${#diagrams[@]}" -eq 0 ]; then
+            echo '::warning::Nenhum bloco Mermaid encontrado em docs; validação ignorada.'
+            exit 0
+          fi
+          for diagram in "${diagrams[@]}"; do
+            npx --yes @mermaid-js/mermaid-cli --quiet --puppeteerConfigFile "$temp_dir/puppeteer-config.json" -i "$diagram" -o "${diagram%.mmd}.svg"
+          done

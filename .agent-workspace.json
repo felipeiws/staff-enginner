@@ -1,0 +1,24 @@
+{
+  "project": "staff-engineer",
+  "safeMode": "audit",
+  "ide": {
+    "command": "phpstorm"
+  },
+  "terminals": [
+    {
+      "name": "Shell",
+      "type": "shell",
+      "command": "bash"
+    },
+    {
+      "name": "Codex",
+      "type": "agent",
+      "command": "codex --dangerously-bypass-approvals-and-sandbox --no-alt-screen"
+    },
+    {
+      "name": "Claude",
+      "type": "agent",
+      "command": "claude"
+    }
+  ]
+}

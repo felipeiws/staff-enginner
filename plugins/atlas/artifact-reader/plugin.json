@@ -1,0 +1,14 @@
+{
+  "id": "atlas.artifact-reader",
+  "version": "1.0.0",
+  "platform_compatibility": ">=0.1.0 <0.2.0",
+  "runtime": "python-worker",
+  "capabilities": ["artifact.reader"],
+  "permissions": ["knowledge.contribute", "artifact.capture"],
+  "input_schema": "../../../packages/contracts/schemas/v1/worker-task.json",
+  "output_schema": "../../../packages/contracts/schemas/v1/visual-artifact-result.json",
+  "idempotency": "task.idempotency_key",
+  "limits": {"max_bytes": 52428800, "max_duration_seconds": 300, "max_capture_pixels": 16000000},
+  "retry": {"max_attempts": 3, "backoff": "exponential"},
+  "observability": {"metrics": ["duration", "artifacts_read", "ocr_characters", "captures", "failures"], "log_content": false}
+}

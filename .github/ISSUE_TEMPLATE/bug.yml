@@ -1,0 +1,36 @@
+name: Relato de bug
+description: Informe um comportamento incorreto ou regressão.
+title: '[Bug]: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Obrigado por ajudar a tornar a plataforma mais confiável.
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto e comportamento observado
+      description: Descreva o que ocorreu e o impacto.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidências e ambiente
+      description: Inclua versões, logs sem segredos, origem/revisão e capturas quando aplicável.

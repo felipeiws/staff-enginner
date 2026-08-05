@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "suite_id": "atlas-search-public-synthetic-v1",
+  "description": "Consultas sintéticas públicas; não inclui dados de clientes, código proprietário ou identificadores pessoais.",
+  "queries": [
+    {
+      "id": "class-name-exact",
+      "query": "OrderCancellationPolicy",
+      "filters": {
+        "organization": "atlas-public",
+        "application": "atlas",
+        "classifications": ["publico"]
+      },
+      "judgments": [{ "id": "rule-rn-142", "grade": 3 }]
+    },
+    {
+      "id": "endpoint-path-exact",
+      "query": "/api/v1/orders/{orderId}/cancel",
+      "filters": {
+        "organization": "atlas-public",
+        "application": "atlas",
+        "classifications": ["publico"]
+      },
+      "judgments": [{ "id": "endpoint-cancel-order", "grade": 3 }]
+    },
+    {
+      "id": "business-rule-code-exact",
+      "query": "RN-142",
+      "filters": {
+        "organization": "atlas-public",
+        "application": "atlas",
+        "classifications": ["publico"]
+      },
+      "judgments": [
+        { "id": "rule-rn-142", "grade": 3 },
+        { "id": "endpoint-cancel-order", "grade": 1 }
+      ]
+    },
+    {
+      "id": "natural-language",
+      "query": "como cancelar um pedido que já foi faturado",
+      "filters": {
+        "organization": "atlas-public",
+        "application": "atlas",
+        "classifications": ["publico"]
+      },
+      "judgments": [
+        { "id": "rule-rn-142", "grade": 3 },
+        { "id": "process-cancel-order", "grade": 2 }
+      ]
+    },
+    {
+      "id": "acronym",
+      "query": "SLA",
+      "filters": {
+        "organization": "atlas-public",
+        "application": "atlas",
+        "classifications": ["publico"]
+      },
+      "judgments": [{ "id": "service-level-agreement", "grade": 3 }]
+    }
+  ]
+}

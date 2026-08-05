@@ -1,0 +1,32 @@
+name: Proposta de funcionalidade
+description: Proponha uma capacidade com impacto e critérios verificáveis.
+title: '[Feature]: '
+labels:
+  - feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema e objetivo
+      description: Qual necessidade será atendida e para quem?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta e alternativas
+      description: Inclua limites, alternativas consideradas e compatibilidade com contratos.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impacto, riscos, métricas e rollback
+      description: Descreva módulos afetados, riscos, como medir resultado e como reverter.
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Proveniência e governança
+      description: Para dados ou IA, informe origem, revisão, método, confiança e aprovação humana necessária.

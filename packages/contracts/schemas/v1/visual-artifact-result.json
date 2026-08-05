@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/visual-artifact-result.json",
+  "title": "Visual artifact read result v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "event_type", "task_id", "scope", "screen_key", "variant", "kind", "content_base64", "content_hash", "media_type", "provenance", "ocr_evidence"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "event_type": {"const": "VisualArtifactRead"},
+    "task_id": {"type": "string", "format": "uuid"},
+    "scope": {"type": "object", "additionalProperties": {"type": "string"}},
+    "screen_key": {"type": "string", "minLength": 1},
+    "variant": {"enum": ["desktop", "mobile"]},
+    "kind": {"enum": ["print", "video"]},
+    "content_base64": {"type": "string", "minLength": 1},
+    "content_hash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "media_type": {"type": "string", "minLength": 1},
+    "thumbnail_base64": {"type": "string"},
+    "duration_seconds": {"type": "number", "minimum": 0},
+    "dimensions": {"type": "object", "required": ["width", "height"]},
+    "provenance": {"type": "object", "required": ["source_revision", "method", "processed_at"]},
+    "ocr_evidence": {"type": "object", "required": ["text", "method", "confidence", "processed_at"]}
+  }
+}

@@ -1,0 +1,9 @@
+openapi: 3.1.0
+info:
+  title: Compras
+  version: 1.0.0
+paths:
+  /pedidos:
+    get:
+      responses:
+        '200': {description: OK}

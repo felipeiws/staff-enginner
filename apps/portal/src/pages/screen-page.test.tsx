@@ -1,0 +1,13 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { ScreenPage } from './screen-page';
+
+const server = setupServer(); const provenance = { origin: 'atlas-demo://screen/pc-0421', revision: 'r1', method: 'artifact.reader@1', confidence: .9, processed_at: '2026-07-31T00:00:00Z' };
+const screenEntity = { id: 'pc-0421', type: 'Tela', title: 'Detalhe do Pedido de Compra', scope: { organization: 'nordika', application: 'erp' }, freshness: { label: 'print desatualizado há 5 meses' }, provenance, projection: { code: 'PC-0421', desktop: { dimensions: '1440×900' }, video: { duration: '1:48' }, fields: [{ name: 'status', type: 'Status', rule: 'RN-142', rule_path: '/regras/rn-142', origin: 'purchase_orders.status' }], known_issues: [{ title: 'Status pode ficar desatualizado', severity: 'médio', color: 'var(--warn)' }], permissions: ['PC.VIEW'], relationships: [{ type: 'Regra', title: 'RN-142', path: '/regras/rn-142' }], relation_count: 7 } };
+beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' })); afterEach(() => server.resetHandlers()); afterAll(() => server.close());
+function renderPage() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={['/telas/pc-0421']}><Routes><Route path="/telas/:id" element={<ScreenPage />} /></Routes></MemoryRouter></QueryClientProvider>); }
+describe('ScreenPage', () => { it('reproduz os detalhes, alterna artefatos e solicita captura ao QA', async () => { server.use(http.get('*/api/v1/entities/pc-0421', () => HttpResponse.json(screenEntity))); const capture = vi.fn(); window.addEventListener('atlas:qa-capture-request', capture); renderPage(); expect(await screen.findByRole('heading', { name: 'Detalhe do Pedido de Compra' })).toBeInTheDocument(); expect(screen.getByText('Campos e origem do dado')).toBeInTheDocument(); expect(screen.getByRole('link', { name: 'RN-142' }).getAttribute('href')).toBe('/regras/rn-142'); fireEvent.click(screen.getByRole('tab', { name: 'Vídeo 1:48' })); expect(screen.getByRole('tab', { name: 'Vídeo 1:48' })).toHaveAttribute('aria-selected', 'true'); fireEvent.click(screen.getByRole('button', { name: 'Capturar pelo QA automatizado' })); expect(capture).toHaveBeenCalledOnce(); expect(screen.getByText('Captura solicitada ao QA')).toBeInTheDocument(); window.removeEventListener('atlas:qa-capture-request', capture); }); });

@@ -1,0 +1,42 @@
+{
+  "name": "@atlas/portal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "dev": "vite",
+    "lint": "eslint src --max-warnings=0",
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:axe": "node scripts/axe-audit.mjs"
+  },
+  "dependencies": {
+    "@atlas/contracts": "workspace:*",
+    "@tanstack/react-query": "^5.90.20",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@storybook/react-vite": "^10.2.13",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "axe-core": "^4.12.1",
+    "jsdom": "^28.1.0",
+    "msw": "^2.15.0",
+    "playwright": "^1.62.1",
+    "storybook": "^10.2.13",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
+  }
+}

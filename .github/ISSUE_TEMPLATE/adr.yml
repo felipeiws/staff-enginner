@@ -1,0 +1,34 @@
+name: Proposta de ADR
+description: Registre uma decisão arquitetural transversal para revisão.
+title: '[ADR]: '
+labels:
+  - adr
+body:
+  - type: markdown
+    attributes:
+      value: ADRs aceitos são imutáveis. Para alterar uma decisão aceita, proponha um novo ADR que a substitua.
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto e decisão proposta
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequências, riscos, métricas e rollback
+    validations:
+      required: true
+  - type: textarea
+    id: contracts
+    attributes:
+      label: Impacto em contratos, proveniência e segurança
+      description: Informe versões, compatibilidade e limites de acesso afetados.
+    validations:
+      required: true

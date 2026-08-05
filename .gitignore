@@ -1,0 +1,25 @@
+# Dependências
+node_modules/
+vendor/
+
+# Configuração local e segredos
+.env
+.env.*
+!.env.example
+
+# Dados e artefatos locais
+storage/
+dist/
+build/
+coverage/
+storybook-static/
+.cache/
+.turbo/
+.venv/
+
+# Artefatos de ferramentas e sistemas operacionais
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+/.forgedesk/

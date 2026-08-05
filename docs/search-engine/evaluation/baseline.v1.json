@@ -1,0 +1,13 @@
+{
+  "suite_id": "atlas-search-public-synthetic-v1",
+  "schema_version": "1.0.0",
+  "k": 10,
+  "metrics": {
+    "recall_at_k": 1,
+    "mrr": 1,
+    "ndcg_at_k": 0.966798,
+    "citation_coverage": 1,
+    "zero_result_rate": 0,
+    "latency_p95_ms": 0
+  }
+}

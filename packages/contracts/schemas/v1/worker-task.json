@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/worker-task.json",
+  "title": "Worker task v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "task_id",
+    "task_type",
+    "idempotency_key",
+    "correlation_id",
+    "scope",
+    "deadline_at",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "task_id": { "type": "string", "format": "uuid" },
+    "task_type": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]*$" },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "correlation_id": { "type": "string", "format": "uuid" },
+    "scope": { "type": "object", "additionalProperties": { "type": "string" } },
+    "deadline_at": { "type": "string", "format": "date-time" },
+    "attempts": { "type": "integer", "minimum": 0 },
+    "payload": { "type": "object", "additionalProperties": true }
+  }
+}

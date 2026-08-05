@@ -1,0 +1,7 @@
+packages:
+  - apps/portal
+  - packages/*
+  - plugins/*/*
+allowBuilds:
+  esbuild: true
+  msw: true

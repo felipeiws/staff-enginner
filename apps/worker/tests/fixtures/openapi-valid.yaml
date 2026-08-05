@@ -1,0 +1,59 @@
+openapi: 3.1.0
+info:
+  title: Compras API
+  version: 2.0.0
+servers:
+  - url: https://api.example.test/v2
+    description: Produção
+components:
+  schemas:
+    Cancelamento:
+      type: object
+      required: [motivo]
+      properties:
+        motivo: { type: string }
+    Pedido:
+      type: object
+      properties:
+        id: { type: string }
+    Erro:
+      type: object
+      properties:
+        code: { type: string }
+paths:
+  /purchase-orders/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identificador do pedido
+        schema: { type: string }
+    delete:
+      operationId: cancelPurchaseOrder
+      description: Cancela um pedido de compra.
+      parameters:
+        - name: dry_run
+          in: query
+          description: Apenas valida o cancelamento.
+          schema: { type: boolean }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Cancelamento' }
+      x-atlas-events:
+        - name: purchase_order.cancel.requested
+          direction: consumes
+        - name: purchase_order.canceled
+          direction: produces
+      responses:
+        '204': { description: Pedido cancelado. }
+        '409':
+          description: Regra de negócio violada.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+              example:
+                code: PARTIAL_INVOICE
+                rule: RN-142
+                hint: cancele apenas o saldo não faturado

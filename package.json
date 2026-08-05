@@ -1,0 +1,27 @@
+{
+  "name": "atlas-knowledge-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fundação do monorepo da Atlas Knowledge Platform.",
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=22.22.2",
+    "pnpm": ">=11.18.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter @atlas/portal dev",
+    "lint": "prettier --check package.json pnpm-workspace.yaml tsconfig.base.json prettier.config.mjs eslint.config.mjs apps packages scripts tests docs/README.md docs/design/prototype/README.md docs/deployment/README.md docker/docker-compose.yml && eslint . && pnpm -r lint",
+    "seed": "node scripts/seed.mjs",
+    "test": "pnpm run test:foundation && pnpm -r test",
+    "test:foundation": "node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4"
+  }
+}

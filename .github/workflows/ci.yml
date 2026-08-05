@@ -1,0 +1,414 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-javascript:
+    name: Lint (ESLint e Prettier)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+
+  lint-php:
+    name: Lint (PHP-CS-Fixer)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+      - name: Restaurar cache do Composer
+        if: ${{ hashFiles('apps/backend/composer.lock') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: ${{ runner.os }}-composer-${{ hashFiles('apps/backend/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Executar PHP-CS-Fixer quando o backend existir
+        run: |
+          if [ ! -f apps/backend/composer.json ]; then
+            echo '::warning::apps/backend/composer.json ainda não existe; PHP-CS-Fixer foi ignorado.'
+            exit 0
+          fi
+          composer --working-dir=apps/backend install --no-interaction --no-progress --prefer-dist
+          if [ -x apps/backend/vendor/bin/php-cs-fixer ]; then
+            apps/backend/vendor/bin/php-cs-fixer check --diff --dry-run
+          else
+            echo '::warning::PHP-CS-Fixer não está instalado no backend; validação ignorada.'
+          fi
+
+  lint-python:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Restaurar cache do pip
+        if: ${{ hashFiles('apps/worker/requirements*.txt', 'apps/worker/pyproject.toml') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('apps/worker/requirements*.txt', 'apps/worker/pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - name: Executar ruff quando os workers existirem
+        run: |
+          if [ ! -f apps/worker/pyproject.toml ] && [ ! -f apps/worker/requirements.txt ]; then
+            echo '::warning::Dependências dos workers ainda não existem; ruff foi ignorado.'
+            exit 0
+          fi
+          python -m pip install --upgrade pip
+          if [ -f apps/worker/requirements.txt ]; then
+            python -m pip install -r apps/worker/requirements.txt
+          else
+            python -m pip install apps/worker
+          fi
+          if command -v ruff >/dev/null 2>&1; then
+            ruff check apps/worker
+          else
+            echo '::warning::ruff não está instalado nas dependências dos workers; validação ignorada.'
+          fi
+
+  backend-tests:
+    name: Testes do backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: atlas_test
+          POSTGRES_USER: atlas
+          POSTGRES_PASSWORD: atlas
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U atlas -d atlas_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+      - name: Restaurar cache do Composer
+        if: ${{ hashFiles('apps/backend/composer.lock') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: ${{ runner.os }}-composer-${{ hashFiles('apps/backend/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Executar testes quando o backend existir
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_DATABASE: atlas_test
+          DB_USERNAME: atlas
+          DB_PASSWORD: atlas
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: '6379'
+        run: |
+          if [ ! -f apps/backend/composer.json ]; then
+            echo '::warning::apps/backend/composer.json ainda não existe; testes do backend foram ignorados.'
+            exit 0
+          fi
+          composer --working-dir=apps/backend install --no-interaction --no-progress --prefer-dist
+          cp apps/backend/.env.example apps/backend/.env 2>/dev/null || true
+          (cd apps/backend && php artisan test)
+
+  search-quality:
+    name: Avaliação informativa da qualidade de busca
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+      - name: Instalar dependências do backend
+        run: composer --working-dir=apps/backend install --no-interaction --no-progress --prefer-dist
+      - name: Avaliar regressão contra a baseline
+        run: |
+          cp apps/backend/.env.example apps/backend/.env
+          (cd apps/backend && php artisan search:evaluate --results=../../docs/search-engine/evaluation/results.v1.json --history=storage/app/search-evaluations/ci-history.jsonl)
+      - name: Publicar série temporal como artefato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-quality-history
+          path: apps/backend/storage/app/search-evaluations/ci-history.jsonl
+          if-no-files-found: warn
+
+  worker-tests:
+    name: Testes dos workers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Restaurar cache do pip
+        if: ${{ hashFiles('apps/worker/requirements*.txt', 'apps/worker/pyproject.toml') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('apps/worker/requirements*.txt', 'apps/worker/pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - name: Executar pytest quando os workers existirem
+        run: |
+          if [ ! -f apps/worker/pyproject.toml ] && [ ! -f apps/worker/requirements.txt ]; then
+            echo '::warning::Dependências dos workers ainda não existem; pytest foi ignorado.'
+            exit 0
+          fi
+          python -m pip install --upgrade pip
+          if [ -f apps/worker/requirements.txt ]; then
+            python -m pip install -r apps/worker/requirements.txt
+          else
+            python -m pip install apps/worker
+          fi
+          if command -v pytest >/dev/null 2>&1; then
+            pytest apps/worker
+          else
+            echo '::warning::pytest não está instalado nas dependências dos workers; testes ignorados.'
+          fi
+
+  portal-tests-build:
+    name: Testes e build do portal
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @atlas/portal test
+      - run: pnpm --filter @atlas/portal build
+      - name: Gerar SBOM CycloneDX do artefato do Portal
+        uses: anchore/sbom-action@v0
+        with:
+          path: apps/portal/dist
+          format: cyclonedx-json
+          output-file: sbom-portal.cdx.json
+      - name: Publicar SBOM do Portal
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-portal-cyclonedx
+          path: sbom-portal.cdx.json
+          if-no-files-found: error
+
+  portal-e2e:
+    name: Portal E2E (backend e seed demonstrativo)
+    runs-on: ubuntu-latest
+    needs: portal-tests-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: pnpm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+      - run: pnpm install --frozen-lockfile
+      - run: composer --working-dir=apps/backend install --no-interaction --no-progress --prefer-dist
+      - name: Subir dependências da stack
+        run: docker compose -f docker/docker-compose.yml up --detach --wait
+      - name: Migrar e semear domínio demonstrativo
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_DATABASE: atlas
+          DB_USERNAME: atlas
+          DB_PASSWORD: atlas_local_password
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: '6379'
+          SESSION_DRIVER: database
+          CACHE_STORE: array
+          COPILOT_MODEL_PROVIDER: deterministic
+        run: |
+          (cd apps/backend && php artisan migrate:fresh --seed --force && php artisan atlas:seed-demo && php artisan search:reindex-published)
+      - name: Instalar navegador do Playwright
+        run: pnpm --filter @atlas/portal exec playwright install --with-deps chromium
+      - name: Executar percursos e regressão visual
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_DATABASE: atlas
+          DB_USERNAME: atlas
+          DB_PASSWORD: atlas_local_password
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: '6379'
+          SESSION_DRIVER: database
+          CACHE_STORE: array
+          COPILOT_MODEL_PROVIDER: deterministic
+        run: |
+          (cd apps/backend && php artisan serve --host=127.0.0.1 --port=8000 > ../../backend-e2e.log 2>&1 &)
+          (cd apps/portal && pnpm vite --host=127.0.0.1 --port=4173 > ../../portal-e2e.log 2>&1 &)
+          pnpm --filter @atlas/portal test:e2e
+      - name: Publicar evidências E2E
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-e2e-artifacts
+          path: |
+            apps/portal/test-results
+            apps/portal/playwright-report
+            backend-e2e.log
+            portal-e2e.log
+          if-no-files-found: ignore
+      - name: Encerrar stack
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down --volumes --remove-orphans
+
+  contracts-json-schema:
+    name: Validação dos contratos JSON Schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-contracts-${{ hashFiles('packages/contracts/**/*.schema.json') }}
+          restore-keys: ${{ runner.os }}-npm-contracts-
+      - name: Compilar os JSON Schemas quando existirem
+        run: |
+          mapfile -t schemas < <(find packages/contracts -type f \( -name '*.schema.json' -o -name '*.schema.yaml' -o -name '*.schema.yml' \) -print)
+          if [ "${#schemas[@]}" -eq 0 ]; then
+            echo '::warning::Nenhum JSON Schema foi encontrado em packages/contracts; validação ignorada.'
+            exit 0
+          fi
+          for schema in "${schemas[@]}"; do
+            case "$schema" in
+              *.json) npx --yes ajv-cli@5 compile -s "$schema" ;;
+              *) echo "::error::Schema YAML não é suportado pelo validador atual: $schema"; exit 1 ;;
+            esac
+          done
+
+  supply-chain:
+    name: Supply chain (lockfiles, segredos, vulnerabilidades e licenças)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bloquear segredos versionados
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.2
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.12.1'
+          enable-cache: true
+      - name: Verificar presença de lockfiles
+        run: node scripts/verify-lockfiles.mjs
+      - name: Verificar lockfile do pnpm
+        run: pnpm install --frozen-lockfile
+      - name: Verificar lockfiles do Composer
+        run: |
+          composer --working-dir=apps/backend validate --strict
+          composer --working-dir=apps/backend install --dry-run --no-interaction --no-progress --prefer-dist
+          composer --working-dir=packages/contracts-php validate --strict
+          composer --working-dir=packages/contracts-php install --dry-run --no-interaction --no-progress --prefer-dist
+      - name: Verificar lockfile do uv
+        run: uv lock --check --project apps/worker && uv sync --locked --project apps/worker --extra dev
+      - name: Bloquear vulnerabilidades críticas das dependências
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL
+          ignore-unfixed: false
+          exit-code: '1'
+      - name: Gerar SBOM CycloneDX das dependências Node
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom-node.cdx.json
+      - name: Gerar SBOM CycloneDX das dependências PHP
+        uses: anchore/sbom-action@v0
+        with:
+          path: apps/backend
+          format: cyclonedx-json
+          output-file: sbom-backend.cdx.json
+      - name: Gerar SBOM CycloneDX das dependências Python
+        uses: anchore/sbom-action@v0
+        with:
+          path: apps/worker
+          format: cyclonedx-json
+          output-file: sbom-worker.cdx.json
+      - name: Bloquear licenças incompatíveis com Apache-2.0
+        run: node scripts/check-sbom-licenses.mjs sbom-node.cdx.json sbom-backend.cdx.json sbom-worker.cdx.json
+      - name: Publicar SBOMs das dependências
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sboms-dependencias-cyclonedx
+          path: sbom-*.cdx.json
+          if-no-files-found: warn

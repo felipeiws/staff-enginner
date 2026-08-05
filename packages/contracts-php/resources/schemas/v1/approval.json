@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/approval.json",
+  "title": "Approval v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "approval_id",
+    "subject",
+    "decision",
+    "decided_at",
+    "decided_by",
+    "reason",
+    "provenance",
+    "command"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "approval_id": { "type": "string", "format": "uuid" },
+    "subject": { "$ref": "#/$defs/subject" },
+    "decision": { "enum": ["approved", "rejected"] },
+    "decided_at": { "type": "string", "format": "date-time" },
+    "decided_by": { "$ref": "#/$defs/actor" },
+    "reason": { "type": "string", "minLength": 1 },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "command": { "$ref": "#/$defs/command" }
+  },
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": { "enum": ["entity_revision", "assertion"] },
+        "id": { "type": "string", "format": "uuid" }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["actor_id", "actor_type"],
+      "properties": {
+        "actor_id": { "type": "string", "minLength": 1 },
+        "actor_type": { "const": "human" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["source_revision", "method", "processed_at"],
+      "properties": {
+        "source_revision": { "type": "string", "minLength": 1 },
+        "method": { "type": "string", "minLength": 1 },
+        "processed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["idempotency_key", "actor"],
+      "properties": {
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "actor": { "$ref": "#/$defs/actor" }
+      }
+    }
+  }
+}

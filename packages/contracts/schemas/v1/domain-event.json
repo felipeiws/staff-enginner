@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/domain-event.json",
+  "title": "DomainEvent envelope v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "event_id",
+    "event_type",
+    "schema_version",
+    "occurred_at",
+    "correlation_id",
+    "actor",
+    "scope",
+    "entity",
+    "command"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "event_type": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9.]*$" },
+    "schema_version": { "const": "1.0.0" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "correlation_id": { "type": "string", "format": "uuid" },
+    "actor": { "$ref": "#/$defs/actor" },
+    "scope": { "type": "object", "additionalProperties": true },
+    "entity": { "$ref": "#/$defs/entityReference" },
+    "payload": { "type": "object", "additionalProperties": true },
+    "command": { "$ref": "#/$defs/command" }
+  },
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["actor_id", "actor_type"],
+      "properties": {
+        "actor_id": { "type": "string", "minLength": 1 },
+        "actor_type": { "enum": ["human", "service", "plugin", "worker"] }
+      }
+    },
+    "entityReference": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["entity_id"],
+      "properties": {
+        "entity_id": { "type": "string", "format": "uuid" },
+        "revision_id": { "type": "string", "format": "uuid" }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["idempotency_key", "actor"],
+      "properties": {
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "actor": { "$ref": "#/$defs/actor" }
+      }
+    }
+  }
+}

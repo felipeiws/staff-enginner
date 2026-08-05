@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/audit-entry.json",
+  "title": "AuditEntry v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "audit_entry_id",
+    "occurred_at",
+    "action",
+    "actor",
+    "scope",
+    "subject",
+    "reason",
+    "correlation_id",
+    "command"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "audit_entry_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "action": { "type": "string", "minLength": 1 },
+    "actor": { "$ref": "#/$defs/actor" },
+    "scope": { "type": "object", "additionalProperties": true },
+    "subject": { "$ref": "#/$defs/subject" },
+    "reason": { "type": "string", "minLength": 1 },
+    "correlation_id": { "type": "string", "format": "uuid" },
+    "command": { "$ref": "#/$defs/command" }
+  },
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["actor_id", "actor_type"],
+      "properties": {
+        "actor_id": { "type": "string", "minLength": 1 },
+        "actor_type": { "enum": ["human", "ci", "plugin", "model", "service", "worker"] }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 },
+        "revision_id": { "type": "string", "format": "uuid" }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["idempotency_key", "actor"],
+      "properties": {
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "actor": { "$ref": "#/$defs/actor" }
+      }
+    }
+  }
+}

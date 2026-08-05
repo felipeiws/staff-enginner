@@ -1,0 +1,25 @@
+{
+  "name": "@atlas/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "node scripts/generate-types.mjs",
+    "build": "pnpm run generate && tsc --noEmit",
+    "lint": "eslint src --max-warnings=0",
+    "test": "pnpm run build && tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "json-schema-to-typescript": "^15.0.4",
+    "tsx": "^4.23.1"
+  }
+}

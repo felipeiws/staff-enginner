@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/code-analysis-result.json",
+  "title": "Code analysis result v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "event_type", "task_id", "revision_id", "scope", "artifact_uri", "provenance", "execution", "candidates", "assertions"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"}, "event_type": {"const": "CodeAnalyzed"},
+    "task_id": {"type": "string", "format": "uuid"}, "revision_id": {"type": "string", "format": "uuid"},
+    "scope": {"type": "object", "additionalProperties": {"type": "string"}}, "artifact_uri": {"type": "string", "minLength": 1},
+    "provenance": {"type": "object", "required": ["source_observation_id", "source_revision", "method", "processed_at"]},
+    "execution": {"type": "object", "required": ["analyzer_version", "kind", "reprocessable"], "properties": {"kind": {"const": "static_analysis"}}},
+    "candidates": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["entity_type", "title", "stable_key", "lifecycle_state", "confidence", "provenance", "evidence"], "properties": {"entity_type": {"enum": ["Controller", "Service", "Job", "Evento", "Listener", "Model", "Tabela", "Migration", "Endpoint", "Tela"]}, "lifecycle_state": {"const": "candidate"}, "evidence": {"$ref": "#/$defs/evidence"}}}},
+    "assertions": {"type": "array", "items": {"type": "object", "required": ["subject_stable_key", "predicate", "object_stable_key", "lifecycle_state", "confidence", "method", "provenance", "evidence"], "properties": {"predicate": {"enum": ["calls", "reads", "writes", "produces", "consumes", "implements", "exposes"]}, "lifecycle_state": {"const": "candidate"}, "evidence": {"$ref": "#/$defs/evidence"}}}}
+  },
+  "$defs": {
+    "evidence": {"type": "object", "required": ["kind", "pointer", "offsets", "checksum", "commit", "provenance"], "properties": {"kind": {"const": "artifact"}, "pointer": {"type": "string", "pattern": ".+:[1-9][0-9]*$"}, "offsets": {"type": "object", "required": ["start", "end", "unit"], "properties": {"unit": {"const": "line"}}}, "checksum": {"type": "string", "minLength": 1}, "commit": {"type": "string", "minLength": 1}, "provenance": {"type": "object", "required": ["source_revision", "method", "processed_at"]}}}
+  }
+}

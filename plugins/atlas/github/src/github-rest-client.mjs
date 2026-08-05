@@ -1,0 +1,14 @@
+/** Minimal GitHub REST adapter. Tokens are injected by the isolated runtime and never stored. */
+export class GitHubRestClient {
+  constructor({ token, fetchImpl = fetch, baseUrl = 'https://api.github.com' }) { this.token = token; this.fetch = fetchImpl; this.baseUrl = baseUrl; }
+  async listRepositories({ organization, cursor }) { const page = cursor ?? 1; const response = await this.request(`/orgs/${organization}/repos?per_page=100&page=${page}`); return { items: response.map((item) => ({ id: String(item.id), organization: item.owner.login, full_name: item.full_name, default_branch: item.default_branch })), nextCursor: response.length === 100 ? page + 1 : null }; }
+  getHeadCommit({ repository }) { return this.getBranchHead({ repository, branch: repository.default_branch }); }
+  async getBranchHead({ repository, branch }) { return (await this.request(`/repos/${repository.full_name}/git/ref/heads/${encodeURIComponent(branch)}`)).object.sha; }
+  async listFiles({ repository, revision }) { const tree = await this.request(`/repos/${repository.full_name}/git/trees/${revision}?recursive=1`); return tree.tree.filter((entry) => entry.type === 'blob').map((entry) => ({ path: entry.path, sha: entry.sha })); }
+  getFileContent({ repository, path, revision }) { return this.request(`/repos/${repository.full_name}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(revision)}`); }
+  async listCommits({ repository, path, revision, limit }) { const commits = await this.request(`/repos/${repository.full_name}/commits?path=${encodeURIComponent(path)}&sha=${revision}&per_page=${limit}`); return commits.map((commit) => ({ sha: commit.sha, author: commit.commit.author.name, committed_at: commit.commit.author.date })); }
+  createBranch({ repository, branch, sha }) { return this.request(`/repos/${repository.full_name}/git/refs`, 'POST', { ref: `refs/heads/${branch}`, sha }); }
+  createOrUpdateFile({ repository, path, branch, content, previousSha, message }) { return this.request(`/repos/${repository.full_name}/contents/${path}`, 'PUT', { message, content: Buffer.from(content).toString('base64'), branch, sha: previousSha }); }
+  createPullRequest({ repository, title, body, head, base }) { return this.request(`/repos/${repository.full_name}/pulls`, 'POST', { title, body, head, base }).then((item) => ({ url: item.html_url, number: item.number })); }
+  async request(path, method = 'GET', body) { const response = await this.fetch(`${this.baseUrl}${path}`, { method, headers: { accept: 'application/vnd.github+json', authorization: `Bearer ${this.token}`, ...(body ? { 'content-type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined }); if (!response.ok) throw new Error(`GitHub respondeu HTTP ${response.status}.`); return response.json(); }
+}

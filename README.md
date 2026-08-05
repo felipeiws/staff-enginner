@@ -27,19 +27,19 @@ flowchart TB
 
 Veja [visão arquitetural](docs/architecture/overview.md), [Knowledge Engine](docs/knowledge-engine/README.md), [busca](docs/search-engine/README.md) e [plugins](docs/plugin-system/README.md).
 
-## Componentes e stack alvo
+## Componentes e stack
 
-| Componente | Responsabilidade | Tecnologia inicial |
-| --- | --- | --- |
-| Portal | experiência humana e administração | React/TypeScript (a decidir em ADR) |
-| API | borda, autorização futura e orquestração | Laravel 13 / PHP |
-| Knowledge Engine | fontes, versões, grafo, evidências e ciclo de vida | Laravel + PostgreSQL |
-| Workers | parsing, embeddings, classificação e tarefas longas | Python |
-| Busca | recuperação lexical, vetorial e filtros | Typesense |
-| Coordenação | filas, cache efêmero e locks | Redis |
-| Artefatos | binários e conteúdo grande | S3-compatível |
+| Componente       | Responsabilidade                                    | Tecnologia inicial                  |
+| ---------------- | --------------------------------------------------- | ----------------------------------- |
+| Portal           | experiência humana e administração                  | Vite, React 19 e TypeScript estrito |
+| API              | borda, autorização e orquestração                   | Laravel 13 / PHP                    |
+| Knowledge Engine | fontes, versões, grafo, evidências e ciclo de vida  | Laravel + PostgreSQL                |
+| Workers          | parsing, embeddings, classificação e tarefas longas | Python                              |
+| Busca            | recuperação lexical, vetorial e filtros             | Typesense                           |
+| Coordenação      | filas, cache efêmero e locks                        | Redis                               |
+| Artefatos        | binários e conteúdo grande                          | S3-compatível                       |
 
-Essa é uma arquitetura de referência, não uma implementação presente neste repositório.
+O monorepo contém as implementações iniciais desses componentes. Consulte o [guia de primeiros passos](docs/development/getting-started.md) para executar o ambiente local.
 
 ## Estrutura
 

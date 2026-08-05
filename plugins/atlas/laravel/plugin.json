@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "id": "atlas.laravel",
+  "version": "1.0.0",
+  "platform_compatibility": "^1.0.0",
+  "runtime": "python_worker",
+  "capabilities": ["code.analyzer"],
+  "configurations": {
+    "framework": "laravel",
+    "compatible_framework_versions": ["^10.0.0", "^11.0.0", "^12.0.0", "^13.0.0"],
+    "max_repository_files": 5000,
+    "max_repository_bytes": 20971520,
+    "max_analysis_seconds": 120,
+    "static_only": true
+  },
+  "permissions": ["artifact.read"],
+  "input_schema": {
+    "$ref": "../../../../packages/contracts/schemas/v1/worker-task.json",
+    "task_type": "code.analyze",
+    "payload_framework": "laravel"
+  },
+  "output_schema": {"$ref": "../../../../packages/contracts/schemas/v1/code-analysis-result.json"},
+  "limits": {
+    "max_concurrency": 1,
+    "timeout_seconds": 120,
+    "max_payload_bytes": 20971520,
+    "cpu_millicores": 1000,
+    "memory_mebibytes": 1024
+  },
+  "retry_policy": {"max_attempts": 3, "backoff_seconds": 5},
+  "idempotency": "task.idempotency_key",
+  "observability": {
+    "metrics": ["analysis_duration_seconds", "analyzed_files_total", "code_candidates_total", "code_assertions_total", "analysis_failures_total"],
+    "log_content": false
+  }
+}

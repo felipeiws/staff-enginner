@@ -1,0 +1,42 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      npm-low-risk:
+        dependency-type: development
+        update-types: [minor, patch]
+  - package-ecosystem: composer
+    directory: /apps/backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      composer-low-risk:
+        update-types: [minor, patch]
+  - package-ecosystem: composer
+    directory: /packages/contracts-php
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      composer-low-risk:
+        update-types: [minor, patch]
+  - package-ecosystem: pip
+    directory: /apps/worker
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      python-low-risk:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions-low-risk:
+        update-types: [minor, patch]

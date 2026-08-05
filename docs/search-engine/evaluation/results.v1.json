@@ -1,0 +1,75 @@
+{
+  "queries": {
+    "OrderCancellationPolicy": {
+      "lexical": [
+        {
+          "id": "rule-rn-142",
+          "origin_uri": "https://example.test/rules/RN-142",
+          "source_revision": "fixture-r1",
+          "method": "parser@1",
+          "confidence": 0.98
+        }
+      ]
+    },
+    "/api/v1/orders/{orderId}/cancel": {
+      "lexical": [
+        {
+          "id": "endpoint-cancel-order",
+          "origin_uri": "https://example.test/openapi/orders",
+          "source_revision": "fixture-r2",
+          "method": "openapi-parser@1",
+          "confidence": 0.97
+        }
+      ]
+    },
+    "RN-142": {
+      "lexical": [
+        {
+          "id": "rule-rn-142",
+          "origin_uri": "https://example.test/rules/RN-142",
+          "source_revision": "fixture-r1",
+          "method": "parser@1",
+          "confidence": 0.98
+        },
+        {
+          "id": "endpoint-cancel-order",
+          "origin_uri": "https://example.test/openapi/orders",
+          "source_revision": "fixture-r2",
+          "method": "openapi-parser@1",
+          "confidence": 0.97
+        }
+      ]
+    },
+    "como cancelar um pedido que já foi faturado": {
+      "lexical": [
+        {
+          "id": "rule-rn-142",
+          "origin_uri": "https://example.test/rules/RN-142",
+          "source_revision": "fixture-r1",
+          "method": "parser@1",
+          "confidence": 0.98
+        }
+      ],
+      "vector": [
+        {
+          "id": "process-cancel-order",
+          "origin_uri": "https://example.test/processes/cancel-order",
+          "source_revision": "fixture-r3",
+          "method": "embedding-fixture@1",
+          "confidence": 0.91
+        }
+      ]
+    },
+    "SLA": {
+      "lexical": [
+        {
+          "id": "service-level-agreement",
+          "origin_uri": "https://example.test/glossary/sla",
+          "source_revision": "fixture-r4",
+          "method": "parser@1",
+          "confidence": 0.99
+        }
+      ]
+    }
+  }
+}

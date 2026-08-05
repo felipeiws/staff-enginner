@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/source-observation.json",
+  "title": "SourceObservation v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "observation_id",
+    "external_id",
+    "source_type",
+    "uri",
+    "revision",
+    "observed_at",
+    "checksum",
+    "metadata",
+    "classification",
+    "command"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "observation_id": { "$ref": "#/$defs/id" },
+    "external_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identificador estável na fonte externa."
+    },
+    "source_type": { "type": "string", "minLength": 1 },
+    "uri": { "type": "string", "format": "uri" },
+    "revision": { "type": "string", "minLength": 1 },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "content": { "type": "string" },
+    "content_ref": { "$ref": "#/$defs/contentReference" },
+    "checksum": { "$ref": "#/$defs/checksum" },
+    "metadata": { "type": "object", "additionalProperties": true },
+    "classification": { "type": "string", "minLength": 1 },
+    "command": { "$ref": "#/$defs/commandContext" }
+  },
+  "anyOf": [{ "required": ["content"] }, { "required": ["content_ref"] }],
+  "$defs": {
+    "id": { "type": "string", "format": "uuid" },
+    "checksum": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$" },
+    "contentReference": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["uri", "checksum"],
+      "properties": {
+        "uri": { "type": "string", "format": "uri" },
+        "checksum": { "$ref": "#/$defs/checksum" },
+        "media_type": { "type": "string" }
+      }
+    },
+    "actorContext": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["actor_id", "actor_type"],
+      "properties": {
+        "actor_id": { "type": "string", "minLength": 1 },
+        "actor_type": { "enum": ["human", "service", "plugin", "worker"] },
+        "display_name": { "type": "string" }
+      }
+    },
+    "commandContext": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["idempotency_key", "actor"],
+      "properties": {
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "actor": { "$ref": "#/$defs/actorContext" },
+        "correlation_id": { "type": "string", "format": "uuid" }
+      }
+    }
+  }
+}

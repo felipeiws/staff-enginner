@@ -1,0 +1,78 @@
+.atlas-data-skeleton {
+  display: grid;
+  gap: 9px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+}
+.atlas-data-skeleton span {
+  height: 12px;
+  width: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface2), var(--sel), var(--surface2));
+  animation: atlas-pulse 1.2s ease-in-out infinite;
+}
+.atlas-data-skeleton span:nth-child(2) {
+  width: 78%;
+}
+.atlas-data-skeleton span:nth-child(3) {
+  width: 55%;
+}
+.atlas-data-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line));
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--tx2);
+  font:
+    400 12.5px/1.5 'IBM Plex Sans',
+    sans-serif;
+}
+.atlas-data-error button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--tx);
+  cursor: pointer;
+  font:
+    500 11px/1 'IBM Plex Mono',
+    monospace;
+}
+.atlas-copilot-thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--tx3);
+  font:
+    400 12.5px/1 'IBM Plex Mono',
+    monospace;
+}
+.atlas-copilot-thinking span:first-child {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--accSoft);
+  color: var(--acc);
+  font-size: 10px;
+}
+.atlas-copilot-thinking span:last-child {
+  animation: atlas-blink 1.2s infinite;
+}
+@keyframes atlas-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes atlas-blink {
+  50% {
+    opacity: 0.45;
+  }
+}

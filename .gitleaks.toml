@@ -1,0 +1,9 @@
+title = "Atlas Knowledge Platform secret scanning policy"
+
+[allowlist]
+  description = "Valores deliberadamente públicos usados apenas para desenvolvimento e testes."
+  paths = [
+    '''(^|/)\.env\.example$''',
+    '''(^|/)tests?/''',
+    '''(^|/)fixtures/''',
+  ]

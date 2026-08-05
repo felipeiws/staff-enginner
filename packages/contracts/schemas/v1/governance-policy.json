@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.local/contracts/governance-policy/1.0.0",
+  "title": "Governance policy document",
+  "type": "object",
+  "required": ["schema_version", "policies"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "policies": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/policy" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "strings": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "policy": {
+      "type": "object",
+      "required": ["policy_key", "version", "name", "priority", "applies_to", "outcome"],
+      "properties": {
+        "policy_key": { "type": "string", "minLength": 1 },
+        "version": { "type": "integer", "minimum": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "priority": { "type": "integer", "minimum": 0 },
+        "active": { "type": "boolean" },
+        "effective_from": { "type": "string", "format": "date-time" },
+        "effective_to": { "type": "string", "format": "date-time" },
+        "applies_to": {
+          "type": "object",
+          "properties": {
+            "source_types": { "$ref": "#/$defs/strings" },
+            "entity_types": { "$ref": "#/$defs/strings" },
+            "classifications": { "$ref": "#/$defs/strings" },
+            "derivation_methods": { "$ref": "#/$defs/strings" },
+            "impact_levels": { "$ref": "#/$defs/strings" },
+            "confidence": { "type": "object", "properties": { "min": { "type": "number", "minimum": 0, "maximum": 1 }, "max": { "type": "number", "minimum": 0, "maximum": 1 } }, "additionalProperties": false },
+            "scope": { "type": "object", "additionalProperties": { "$ref": "#/$defs/strings" } },
+            "owner": { "type": "object", "properties": { "ids": { "$ref": "#/$defs/strings" }, "roles": { "$ref": "#/$defs/strings" } }, "additionalProperties": false }
+          },
+          "additionalProperties": false
+        },
+        "outcome": {
+          "type": "object",
+          "required": ["action"],
+          "properties": {
+            "action": { "enum": ["publish", "review", "block"] },
+            "approver_roles": { "$ref": "#/$defs/strings" },
+            "validity_days": { "type": "integer", "minimum": 1 },
+            "freshness_warning_days": { "type": "integer", "minimum": 0 },
+            "retraction_behavior": { "type": "string", "minLength": 1 },
+            "auto_approve_after_hours": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

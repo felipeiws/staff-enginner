@@ -1,0 +1,31 @@
+{
+  "name": "atlas/contracts",
+  "description": "DTOs e validação PHP dos contratos versionados da Atlas.",
+  "type": "library",
+  "license": "Apache-2.0",
+  "require": {
+    "php": "^8.3",
+    "opis/json-schema": "^2.6"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^2.1",
+    "phpunit/phpunit": "^11.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Atlas\\Contracts\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Atlas\\Contracts\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "analyse": "phpstan analyse --memory-limit=512M"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

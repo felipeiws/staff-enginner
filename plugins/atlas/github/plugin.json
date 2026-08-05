@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "id": "atlas.github",
+  "version": "1.0.0",
+  "platform_compatibility": "^1.0.0",
+  "runtime": "container",
+  "capabilities": ["source.connector"],
+  "configurations": {
+    "credential_reference": "secret://atlas/github/installations/documentation",
+    "scope": {
+      "organization": "acme",
+      "repository_ids": ["repo-docs"],
+      "path_prefixes": ["docs/"],
+      "classification": "internal"
+    }
+  },
+  "permissions": ["artifact.read", "network.egress", "secrets.read", "webhook.receive"],
+  "egress_allowlist": ["api.github.com"],
+  "input_schema": {"type": "object", "additionalProperties": true},
+  "output_schema": {"$ref": "../../../../packages/contracts/schemas/v1/source-observation.json"},
+  "limits": {"max_concurrency": 2, "timeout_seconds": 120, "max_payload_bytes": 5242880, "cpu_millicores": 500, "memory_mebibytes": 512},
+  "retry_policy": {"max_attempts": 4, "backoff_seconds": 5},
+  "idempotency": "command.idempotency_key",
+  "observability": {
+    "metrics": ["github_requests_total", "observations_emitted_total", "webhooks_rejected_total", "webhooks_rate_limited_total", "pull_requests_opened_total"],
+    "log_content": false
+  }
+}

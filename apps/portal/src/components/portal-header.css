@@ -1,0 +1,132 @@
+.portal-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 26px;
+  border-bottom: 1px solid var(--line2);
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+}
+.portal-header-menu { display:none; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--tx); cursor:pointer; font-size:16px; line-height:1; padding:5px 7px; }
+.portal-header-breadcrumb {
+  flex: none;
+  color: var(--tx3);
+  font:
+    400 11.5px/1 'IBM Plex Mono',
+    monospace;
+  white-space: nowrap;
+}
+.portal-header-search-wrap {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.portal-header-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(520px, 100%);
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+}
+.portal-header-search:focus-within {
+  border-color: var(--line);
+}
+.portal-header-search-icon {
+  color: var(--tx3);
+  font-size: 12px;
+}
+.portal-header-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--tx);
+  font:
+    400 12.5px/1.4 'IBM Plex Sans',
+    sans-serif;
+}
+.portal-header-search input::placeholder {
+  color: var(--tx3);
+  opacity: 1;
+}
+.portal-header-search button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--acc);
+  cursor: pointer;
+  white-space: nowrap;
+  font:
+    500 10px/1 'IBM Plex Mono',
+    monospace;
+}
+.portal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.portal-header-approvals {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--warn);
+  cursor: pointer;
+  font:
+    500 10.5px/1 'IBM Plex Mono',
+    monospace;
+}
+.portal-header-avatar {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--violet);
+  color: #0b0713;
+  font:
+    600 10px 'IBM Plex Mono',
+    monospace;
+}
+.portal-header-search button:hover,
+.portal-header-search button:focus-visible,
+.portal-header-approvals:hover,
+.portal-header-approvals:focus-visible {
+  color: var(--tx);
+}
+
+:root[data-theme='light'] .portal-header-search button { color:#08764d; }
+:root[data-theme='light'] .portal-header-approvals { color:#965a00; }
+:root[data-theme='light'] .portal-header-avatar { color:#fff; }
+@media (max-width: 900px) {
+  .portal-header-menu { display:block; }
+}
+@media (max-width: 720px) {
+  .portal-header {
+    padding: 11px 16px;
+    gap: 10px;
+  }
+  .portal-header-breadcrumb {
+    display: none;
+  }
+  .portal-header-search-wrap {
+    justify-content: flex-start;
+  }
+  .portal-header-approvals {
+    padding: 5px;
+    font-size: 0;
+  }
+  .portal-header-approvals::after {
+    content: '✓';
+    font-size: 10.5px;
+  }
+}

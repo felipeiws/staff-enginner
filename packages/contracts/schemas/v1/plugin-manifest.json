@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/contracts/schemas/v1/plugin-manifest.json",
+  "title": "Atlas plugin manifest v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "id", "version", "platform_compatibility", "runtime", "capabilities", "configurations", "permissions", "input_schema", "output_schema", "limits", "retry_policy"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$", "minLength": 3, "maxLength": 128},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"},
+    "platform_compatibility": {"type": "string", "minLength": 1, "maxLength": 128},
+    "runtime": {"enum": ["container", "python_worker"]},
+    "capabilities": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["source.connector", "content.parser", "code.analyzer", "artifact.reader", "enrichment.provider"]}},
+    "configurations": {"type": "object"},
+    "permissions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["artifact.read", "network.egress", "secrets.read", "webhook.receive"]}},
+    "input_schema": {"type": "object"},
+    "output_schema": {"type": "object"},
+    "egress_allowlist": {"type": "array", "uniqueItems": true, "items": {"type": "string", "format": "hostname", "maxLength": 253}},
+    "limits": {"type": "object", "required": ["max_concurrency", "timeout_seconds", "max_payload_bytes", "cpu_millicores", "memory_mebibytes"], "properties": {"max_concurrency": {"type": "integer", "minimum": 1}, "timeout_seconds": {"type": "integer", "minimum": 1}, "max_payload_bytes": {"type": "integer", "minimum": 1}, "cpu_millicores": {"type": "integer", "minimum": 10, "maximum": 4000}, "memory_mebibytes": {"type": "integer", "minimum": 32, "maximum": 8192}}},
+    "retry_policy": {"type": "object", "required": ["max_attempts", "backoff_seconds"], "properties": {"max_attempts": {"type": "integer", "minimum": 0}, "backoff_seconds": {"type": "integer", "minimum": 0}}}
+  }
+}
