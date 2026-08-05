@@ -15,27 +15,21 @@ docker run --rm -v "$PWD/apps/backend":/app -w /app composer:2.8 sh -c \
   "composer install --no-dev --no-interaction --quiet && php artisan key:generate --show"
 ```
 
-## 1. Adaptar o compose para o painel
+## 1. Por que existe um compose separado na raiz do repositório
 
-O EasyPanel recomenda usar os domínios do próprio painel em vez de `ports:` publicadas para tráfego HTTP (evita conflito de porta com outros projetos no mesmo servidor). Antes de colar o compose no painel, remova a publicação de porta do `portal`:
+Use [`docker-compose.production.yml`](../../docker-compose.production.yml), na **raiz** do repositório — não [`docker/docker-compose.production.yml`](../../docker/docker-compose.production.yml) (esse é usado só pelo fluxo self-hosted via SSH, `scripts/install-self-hosted.sh`/`update-self-hosted.sh`, que já passam `--env-file` explicitamente).
 
-```diff
-   portal:
-     ...
--    ports: ['${ATLAS_PORT:-8080}:8080']
-     depends_on:
-       backend-web: { condition: service_healthy }
-```
+O EasyPanel gera um `docker-compose.override.yml` na raiz do checkout clonado e resolve o `.env` do serviço relativo a essa raiz (não ao diretório do arquivo `docker-compose.yml` apontado na fonte). Se o compose de produção ficasse em `docker/`, a interpolação `${VAR:?...}` do painel falha com erros do tipo `required variable REDIS_PASSWORD is missing a value`, mesmo com a variável preenchida corretamente no campo de ambiente. A cópia na raiz evita essa ambiguidade de diretório. Mantenha os dois arquivos em sincronia manualmente ao alterar serviços.
 
-Os demais serviços (`postgres`, `redis`, `typesense`, `minio`, `backend`, `worker`) já não publicam portas — permanecem só na rede interna do Compose, como no caminho self-hosted padrão.
+A cópia da raiz também já vem sem a publicação de porta do `portal` (`ports: ['${ATLAS_PORT:-8080}:8080']`), pois o EasyPanel usa os próprios domínios do painel para tráfego HTTP em vez de portas publicadas (evita conflito de porta com outros projetos no mesmo servidor). Os demais serviços (`postgres`, `redis`, `typesense`, `minio`, `backend`, `worker`) já não publicam portas — permanecem só na rede interna do Compose, como no caminho self-hosted padrão.
 
 ## 2. Criar o projeto e o serviço Compose
 
 1. No painel: **Projects → New Project**, com nome `atlas`.
 2. Dentro do projeto: **New Service → Compose**.
 3. Escolha a fonte:
-   - **Git**: aponte para o repositório, branch e o caminho `docker/docker-compose.production.yml`. Para repositório privado, adicione a chave SSH que o painel gera como deploy key no repositório.
-   - **Inline**: cole o conteúdo já adaptado do passo 1.
+   - **Git**: aponte para o repositório, branch e o caminho `docker-compose.production.yml` (raiz). Para repositório privado, adicione a chave SSH que o painel gera como deploy key no repositório.
+   - **Inline**: cole o conteúdo do arquivo da raiz.
 4. Revise os avisos de compatibilidade que o painel mostrar (tipicamente sobre `container_name` ou `ports`) — este compose já não usa `container_name` fixo.
 5. Ative **Create .env file**.
 
