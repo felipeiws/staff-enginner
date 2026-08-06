@@ -30,6 +30,8 @@ services:
         '--requirepass',
         '${REDIS_PASSWORD:?defina REDIS_PASSWORD}',
       ]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?defina REDIS_PASSWORD}
     volumes: [redis-data:/data]
     healthcheck:
       test: ['CMD-SHELL', 'redis-cli --no-auth-warning -a "$$REDIS_PASSWORD" ping | grep -q PONG']
