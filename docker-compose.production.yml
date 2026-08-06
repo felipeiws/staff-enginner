@@ -56,7 +56,11 @@ services:
       --enable-cors=false
     volumes: [typesense-data:/data]
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:8108/health | grep -q ok']
+      test:
+        - CMD
+        - bash
+        - -c
+        - 'exec 3<>/dev/tcp/127.0.0.1/8108; printf "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3; cat <&3 | grep -q "\"ok\":true"'
       interval: 10s
       timeout: 5s
       retries: 20
