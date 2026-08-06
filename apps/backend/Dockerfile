@@ -9,8 +9,10 @@ RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --opt
 
 FROM php:8.3-fpm-alpine AS runtime
 RUN apk add --no-cache libpq \
-    && apk add --no-cache --virtual .build-deps postgresql-dev \
+    && apk add --no-cache --virtual .build-deps postgresql-dev $PHPIZE_DEPS \
     && docker-php-ext-install -j"$(nproc)" pdo_pgsql \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && apk del .build-deps \
     && addgroup -S -g 10001 atlas && adduser -S -D -H -u 10001 -G atlas atlas
 WORKDIR /var/www/atlas
