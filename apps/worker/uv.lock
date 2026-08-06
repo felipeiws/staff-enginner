@@ -30,7 +30,7 @@ wheels = [
 [[package]]
 name = "atlas-worker"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "pillow" },
     { name = "playwright" },
