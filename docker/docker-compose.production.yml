@@ -78,9 +78,10 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD}
       AWS_BUCKET: ${AWS_BUCKET:?defina AWS_BUCKET}
     entrypoint: ['/bin/sh', '-ec']
-    command: >-
-      mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
-      mc mb --ignore-existing "local/$$AWS_BUCKET"
+    command:
+      - >-
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+        mc mb --ignore-existing "local/$$AWS_BUCKET"
     depends_on:
       minio: { condition: service_healthy }
 
