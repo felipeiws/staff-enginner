@@ -23,3 +23,6 @@ storybook-static/
 .DS_Store
 Thumbs.db
 /.forgedesk/
+/.tech-lead/
+/.claude/
+/apps/portal/test-results/

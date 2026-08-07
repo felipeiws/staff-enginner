@@ -9,6 +9,12 @@ export interface Provenance {
   processed_at: string;
 }
 
+export interface Principal {
+  id: string;
+  type: string;
+  name: string;
+  avatar_initials: string;
+}
 export interface Organization {
   id: string;
   name: string;

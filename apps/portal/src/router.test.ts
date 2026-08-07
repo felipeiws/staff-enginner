@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { routePaths } from '@/router';
+import { routePaths, router } from '@/router';
 
 describe('rotas do Portal', () => {
   it('mantém todos os endereços compartilháveis previstos no protótipo', () => {
@@ -16,6 +16,12 @@ describe('rotas do Portal', () => {
       '/aprovacoes',
       '/saude',
       '/decisoes-ux',
+      '/login',
+      '/onboarding',
     ]);
+  });
+
+  it('registra cada endereço uma única vez no router, mais o fallback de 404', () => {
+    expect(router.routes.map((route) => route.path)).toEqual([...routePaths, '*']);
   });
 });

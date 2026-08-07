@@ -11,6 +11,7 @@ import {
   editApprovalText,
   requestApprovalAiRevision,
   rejectApproval,
+  getCurrentPrincipal,
   getEntity,
   getGraphNeighborhood,
   getGraphNode,
@@ -25,6 +26,7 @@ import {
   uploadVisualArtifact,
 } from './portal-api';
 import { portalQueryKeys } from './query-keys';
+import { login } from './session-api';
 import type { CopilotAskInput, GraphNeighborhoodParams, SearchParams } from './types';
 import type { VisualArtifactUpload } from './portal-api';
 
@@ -39,6 +41,23 @@ export const isTransientError = (error: unknown) => {
 const retryTransient = (failureCount: number, error: unknown) =>
   isTransientError(error) && failureCount < 2;
 
+export function useCurrentPrincipal() {
+  return useQuery({
+    queryKey: ['me'],
+    queryFn: ({ signal }) => getCurrentPrincipal(signal),
+    select: (response) => response.principal,
+    retry: false,
+  });
+}
+export function useLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) => login(email, password),
+    onSuccess: (principal) => {
+      queryClient.setQueryData(['me'], { principal });
+    },
+  });
+}
 export function useOrganization(id: string) {
   return useQuery({
     queryKey: portalQueryKeys.organization(id),

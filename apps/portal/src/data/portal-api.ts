@@ -18,6 +18,7 @@ import type {
   KnowledgeHealth,
   KnowledgeGapAssignment,
   Organization,
+  Principal,
   SearchParams,
   SearchResponse,
   UxDecisionsResponse,
@@ -34,6 +35,8 @@ const query = (params: object) => {
   return search.toString() ? `?${search}` : '';
 };
 
+export const getCurrentPrincipal = (signal?: AbortSignal) =>
+  portalApi.get<{ principal: Principal }>('/me', signal);
 export const getOrganization = (id: string, signal?: AbortSignal) =>
   portalApi.get<Organization>(`/organizations/${encodeURIComponent(id)}`, signal);
 export const getApplications = (signal?: AbortSignal) =>

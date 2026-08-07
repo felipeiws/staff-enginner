@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { useApplications, useSearch } from './hooks';
+import { useApplications, useCurrentPrincipal, useLogin, useSearch } from './hooks';
 import { DataError, DataSkeleton } from './query-state';
 
 const server = setupServer();
@@ -32,6 +32,22 @@ function SearchView() {
   if (query.isLoading) return <DataSkeleton />;
   if (query.error) return <DataError error={query.error} />;
   return <span>{query.data?.results.length} resultados</span>;
+}
+
+function PrincipalView() {
+  const query = useCurrentPrincipal();
+  if (query.isLoading) return <DataSkeleton />;
+  if (query.error) return <DataError error={query.error} />;
+  return <span>{query.data?.name}</span>;
+}
+
+function LoginView() {
+  const mutation = useLogin();
+  return (
+    <button onClick={() => mutation.mutate({ email: 'ana@atlas.dev', password: 'senha123' })}>
+      Entrar
+    </button>
+  );
 }
 
 describe('camada de dados do portal', () => {
@@ -92,5 +108,56 @@ describe('camada de dados do portal', () => {
     );
     renderWithQuery(<SearchView />);
     await waitFor(() => expect(screen.getByText('0 resultados')).toBeInTheDocument());
+  });
+
+  it('carrega o principal autenticado', async () => {
+    server.use(
+      http.get('*/api/v1/me', () =>
+        HttpResponse.json({
+          principal: { id: 'u1', type: 'human', name: 'Ana', avatar_initials: 'AN' },
+        }),
+      ),
+    );
+    renderWithQuery(<PrincipalView />);
+    expect(await screen.findByText('Ana')).toBeInTheDocument();
+  });
+
+  it('não tenta novamente quando o usuário não está autenticado (401)', async () => {
+    let requestCount = 0;
+    server.use(
+      http.get('*/api/v1/me', () => {
+        requestCount += 1;
+        return HttpResponse.json(
+          { title: 'Não autenticado', status: 401 },
+          { status: 401, headers: { 'Content-Type': 'application/problem+json' } },
+        );
+      }),
+    );
+    renderWithQuery(<PrincipalView />);
+    await screen.findByRole('alert');
+    expect(requestCount).toBe(1);
+  });
+
+  it('login grava o principal no cache de ["me"] sem round-trip extra', async () => {
+    server.use(
+      http.get('*/auth/csrf', () => HttpResponse.json({ csrf_token: 'token-123' })),
+      http.post('*/auth/session', () =>
+        HttpResponse.json({
+          principal: { id: 'u1', type: 'human', name: 'Ana', avatar_initials: 'AN' },
+        }),
+      ),
+    );
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <LoginView />
+      </QueryClientProvider>,
+    );
+    screen.getByText('Entrar').click();
+    await waitFor(() =>
+      expect(client.getQueryData(['me'])).toEqual({
+        principal: { id: 'u1', type: 'human', name: 'Ana', avatar_initials: 'AN' },
+      }),
+    );
   });
 });

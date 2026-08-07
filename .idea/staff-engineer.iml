@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/apps/backend/storage" />
       <excludeFolder url="file://$MODULE_DIR$/apps/backend/vendor" />
+      <excludeFolder url="file://$MODULE_DIR$/.tech-lead" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -1,6 +1,6 @@
 import { expect, test as base } from '@playwright/test';
 
-const demoCredentials = { email: 'demo@nordika.test', password: 'atlas-demo-password' };
+export const demoCredentials = { email: 'demo@nordika.test', password: 'atlas-demo-password' };
 
 export const test = base.extend({
   page: async ({ page }, use) => {
