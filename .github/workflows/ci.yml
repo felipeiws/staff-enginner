@@ -377,7 +377,7 @@ jobs:
       - name: Verificar lockfile do uv
         run: uv lock --check --project apps/worker && uv sync --locked --project apps/worker --extra dev
       - name: Bloquear vulnerabilidades críticas das dependências
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
